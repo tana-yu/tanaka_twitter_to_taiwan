@@ -1,0 +1,38 @@
+version: "3"
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: /bin/sh -c "rm -f tmp/pids/server.pid && bundle exec rails s -b '0.0.0.0' -p 3000"
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    tty: true
+    stdin_open: true
+    environment:
+      DB_USER: postgres
+      DB_PASS: dev
+      DB_PORT: 5432
+      DB_HOST: db
+      DB_NAME: dev
+      RAILS_ENV: development
+      TZ: Asia/Tokyo
+      HOST: localhost
+    depends_on:
+      - db
+
+  db:
+    image: "postgres:14"
+    command: postgres -c log_destination=stderr -c log_statement=all -c log_connections=on -c log_disconnections=on
+    volumes:
+      - .:/app
+      - ./initdb:/docker-entrypoint-initdb.d
+      - ./permanent-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: dev
